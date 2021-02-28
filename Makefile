@@ -26,7 +26,10 @@ clean:
 	rm -f src/*.o
 	rm -f ipipmapper
 install:
+	mkdir -p /etc/IPIPMapper
 	cp -f ipipmapper /usr/bin/
+	cp -f tc_mapper.o /etc/IPIPMapper/
+	cp -f tc_out.o /etc/IPIPMapper/
 	cp -n systemd/IPIPMapper.service /etc/systemd/system/IPIPMapper.service
 .PHONY: ipipmapper mapper out
 .DEFAULT: all
