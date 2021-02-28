@@ -1,0 +1,11 @@
+[Unit]
+Description=IPIP Mapper loader.
+After=network-online.target
+Requires=network-online.target
+
+[Service]
+ExecStart=/usr/bin/ipipmapper -i ens18
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
