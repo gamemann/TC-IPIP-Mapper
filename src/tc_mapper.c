@@ -12,7 +12,6 @@
 
 #include <bpf_helpers.h>
 
-#ifdef __BPF__
 #define likely(x) __builtin_expect(!!(x), 1)
 #define unlikely(x) __builtin_expect(!!(x), 0)
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
@@ -25,7 +24,6 @@
 #define ntohs(X) (x)
 #define htonl(x) (x)
 #define ntohl(x) (x)
-#endif
 #endif
 
 // TC has its own map definition.
