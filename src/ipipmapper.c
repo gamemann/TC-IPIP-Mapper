@@ -138,6 +138,8 @@ int main(int argc, char *argv[])
         return err;
     }
 
+    fprintf(stdout, "Successfully loaded TC programs! Please end program to detach TC programs.\n");
+
     signal(SIGINT, signhdl);
 
     // Create while loop.
