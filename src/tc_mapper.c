@@ -19,6 +19,7 @@
 #define htons(x) (x)
 #endif
 #define offsetof(TYPE, MEMBER) ((uint16_t)&((TYPE *)0)->MEMBER)
+
 // TC has its own map definition.
 struct bpf_elf_map 
 {
