@@ -25,5 +25,8 @@ clean:
 	rm -f src/*.bc
 	rm -f src/*.o
 	rm -f ipipmapper
+install:
+	cp -f ipipmapper /usr/bin/
+	cp -n systemd/IPIPMapper.service /etc/systemd/system/IPIPMapper.service
 .PHONY: ipipmapper mapper out
 .DEFAULT: all
