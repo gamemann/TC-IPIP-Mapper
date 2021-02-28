@@ -23,42 +23,6 @@ int tc_attach(const char *dev, const char *hook, const char *bpf_obj, const char
     char cmd[CMD_MAX];
     int ret = 0;
 
-    /* Delete clsact which also deletes existing programs. */
-
-    // Set cmd to all 0's.
-    memset(&cmd, 0, CMD_MAX);
-
-    // Format command.
-    snprintf(cmd, CMD_MAX, "tc qdisc del dev %s clsact 2> /dev/null", dev);
-
-    // Call system command.
-    ret = system(cmd);
-
-    // Check if command executed.
-    if (!WIFEXITED(ret)) 
-    {
-        fprintf(stderr, "Error attaching TC program (%s). Cannot execute TC command when removing clsact. Command => %s and Return Error Number => %d.\n", bpf_obj, cmd, WEXITSTATUS(ret));
-    }
-
-    /* Create clsact. */
-
-    // Set cmd to all 0's.
-    memset(&cmd, 0, CMD_MAX);
-
-    // Format command.
-    snprintf(cmd, CMD_MAX, "tc qdisc add dev %s clsact", dev);
-
-    // Call system command.
-    ret = system(cmd);
-
-    // Check if command executed.
-    if (ret) 
-    {
-        fprintf(stderr, "Error attaching TC program (%s). TC cannot create a clsact. Command => %s and Return Error Number => %d.\n", bpf_obj, cmd, WEXITSTATUS(ret));
-
-        exit(1);
-    }
-
     /* Attach TC program. */
 
     // Set cmd to all 0's.
@@ -110,12 +74,12 @@ int tc_detach(const char *dev, const char *hook)
 int main(int argc, char *argv[])
 {
     // Parse the command line and retrieve the interface we want to attach the TC programs to.
-    struct cmdline cmd = {0};
+    struct cmdline cmdline = {0};
 
-    parsecmdline(argc, argv, &cmd);
+    parsecmdline(argc, argv, &cmdline);
 
     // Check to ensure interface isn't NULL.
-    if (cmd.dev == NULL)
+    if (cmdline.dev == NULL)
     {
         fprintf(stderr, "No interface specified. Please specify an interface with the -i or --dev flag.\n");
 
@@ -124,16 +88,53 @@ int main(int argc, char *argv[])
 
     // Attempt to attach TC programs.
     int err = 0;
+    char cmd[CMD_MAX];
 
-    if ((err = tc_attach(cmd.dev, "ingress", "/etc/IPIPMapper/tc_mapper.o", "mapper")) != 0)
+    /* Delete clsact which also deletes existing programs. */
+
+    // Set cmd to all 0's.
+    memset(&cmd, 0, CMD_MAX);
+
+    // Format command.
+    snprintf(cmd, CMD_MAX, "tc qdisc del dev %s clsact 2> /dev/null", cmdline.dev);
+
+    // Call system command.
+    err = system(cmd);
+
+    // Check if command executed.
+    if (!WIFEXITED(err)) 
+    {
+        fprintf(stderr, "Error deleting clsact. Command => %s and Return Error Number => %d.\n", cmd, WEXITSTATUS(err));
+    }
+
+    /* Create clsact. */
+
+    // Set cmd to all 0's.
+    memset(&cmd, 0, CMD_MAX);
+
+    // Format command.
+    snprintf(cmd, CMD_MAX, "tc qdisc add dev %s clsact", cmdline.dev);
+
+    // Call system command.
+    err = system(cmd);
+
+    // Check if command executed.
+    if (err) 
+    {
+        fprintf(stderr, "Error adding clsact. Command => %s and Return Error Number => %d.\n", cmd, WEXITSTATUS(err));
+
+        return err;
+    }
+
+    if ((err = tc_attach(cmdline.dev, "ingress", "/etc/IPIPMapper/tc_mapper.o", "mapper")) != 0)
     {
         return err;
     }
 
-    if ((err = tc_attach(cmd.dev, "egress", "/etc/IPIPMapper/tc_out.o", "out")) != 0)
+    if ((err = tc_attach(cmdline.dev, "egress", "/etc/IPIPMapper/tc_out.o", "out")) != 0)
     {
         // Detach Mapper.
-        tc_detach(cmd.dev, "ingress");
+        tc_detach(cmdline.dev, "ingress");
 
         return err;
     }
@@ -149,8 +150,8 @@ int main(int argc, char *argv[])
     }
 
     // Attempt to detach TC programs.
-    tc_detach(cmd.dev, "ingress");
-    tc_detach(cmd.dev, "egress");
+    tc_detach(cmdline.dev, "ingress");
+    tc_detach(cmdline.dev, "egress");
 
     return EXIT_SUCCESS;
 }
