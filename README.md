@@ -15,5 +15,21 @@ The only command line option is `-i --dev` which determines which interface to a
 ./ipipmapper --dev ens18
 ```
 
+## Installing
+You may use `git` and `make` to install this project onto your server. I'd suggest the following commands for downloading and installing.
+
+```
+git clone --recursive https://github.com/gamemann/TC-IPIP-Mapper.git # Recursive will download LibBPF.
+cd TC-IPIP-Mapper/
+make && make install
+```
+
+If you want to enable this via `systemd`, I'd suggest modifying the `/etc/systemd/system/IPIPMapper.service` file after install and ensure it is set to use the correct interface via the `-i` flag. Afterwards, you may execute the following commands.
+
+```
+systemctl enable IPIPMapper # Enables the program on startup.
+systemctl start IPIPMapper  # Starts the program via systemd.
+```
+
 ## Credits
 * [Christian Deacon](https://github.com/gamemann)
