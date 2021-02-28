@@ -9,14 +9,16 @@ OUTSRC = tc_out.c
 IPIPMAPPERSRC = ipipmapper.c
 COMMONOBJS = src/cmdline.o
 
+LIBBPFSRC = libbpf/src
+
 all: ipipmapper mapper out
 ipipmapper: $(COMMONOBJS)
 	$(CC) $(COMMONOBJS) src/$(IPIPMAPPERSRC) -o ipipmapper
 mapper:
-	$(CC) -D__BPF__ -Wall -Wextra -O2 -emit-llvm -c src/$(MAPPERSRC) -o src/tc_mapper.bc
+	$(CC) -I$(LIBBPFSRC)/bpf_helpers.h -D__BPF__ -Wall -Wextra -O2 -emit-llvm -c src/$(MAPPERSRC) -o src/tc_mapper.bc
 	llc -march=bpf -filetype=obj src/tc_mapper.bc -o $(MAPPEROBJ)
 out:
-	$(CC) -D__BPF__ -Wall -Wextra -O2 -emit-llvm -c src/$(OUTSRC) -o src/tc_out.bc
+	$(CC) -I$(LIBBPFSRC)/bpf_helpers.h -D__BPF__ -Wall -Wextra -O2 -emit-llvm -c src/$(OUTSRC) -o src/tc_out.bc
 	llc -march=bpf -filetype=obj src/tc_out.bc -o $(OUTOBJ)
 clean:
 	rm -f *.o
