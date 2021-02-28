@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
     // Check to ensure interface isn't NULL.
     if (cmd.dev == NULL)
     {
-        fprinf(stderr, "No interface specified. Pleasse specify an interface with the -i or --dev flag.\n");
+        fprintf(stderr, "No interface specified. Pleasse specify an interface with the -i or --dev flag.\n");
 
         return EXIT_FAILURE;
     }
