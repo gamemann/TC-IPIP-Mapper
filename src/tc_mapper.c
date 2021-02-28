@@ -30,6 +30,8 @@ struct bpf_elf_map
     uint32_t flags;
     uint32_t id;
     uint32_t pinning;
+	uint32_t inner_id;
+	uint32_t inner_idx;
 };    
 
 struct bpf_elf_map SEC("maps") mapping =
