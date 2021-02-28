@@ -48,8 +48,8 @@ struct bpf_elf_map SEC("maps") mapping =
     .pinning = 2
 };
 
-SEC("mapper")
-int mapper_prog(struct __sk_buff *skb)
+SEC("out")
+int out_prog(struct __sk_buff *skb)
 {
     // Initialize packet data.
     void *data_end = (void *)(long)skb->data_end;
