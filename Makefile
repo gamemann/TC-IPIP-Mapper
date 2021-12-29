@@ -3,6 +3,13 @@ CC = clang
 MAPPEROBJ = tc_mapper.o
 MAPPERSRC = tc_mapper.c
 
+LIBBPFDIR = libbpf/src
+LIBBPFOBJS = $(LIBBPFSRC)/staticobjs/bpf.o $(LIBBPFSRC)/staticobjs/btf.o $(LIBBPFSRC)/staticobjs/libbpf.o
+LIBBPFOBJS += $(LIBBPFSRC)/staticobjs/libbpf_errno.o $(LIBBPFSRC)/staticobjs/netlink.o $(LIBBPFSRC)/staticobjs/nlattr.o
+LIBBPFOBJS += $(LIBBPFSRC)/staticobjs/str_error.o $(LIBBPFSRC)/staticobjs/libbpf_probes.o $(LIBBPFSRC)/staticobjs/xsk.o
+LIBBPFOBJS += $(LIBBPFSRC)/staticobjs/btf_dump.o $(LIBBPFSRC)/staticobjs/hashmap.o $(LIBBPFSRC)/staticobjs/ringbuf.o
+LIBBPFOBJS += $(LIBBPFSRC)/staticobjs/strset.o $(LIBBPFSRC)/staticobjs/gen_loader.o $(LIBBPFSRC)/staticobjs/relo_core.o
+
 OUTOBJ = tc_out.o
 OUTSRC = tc_out.c
 
@@ -12,8 +19,10 @@ COMMONOBJS = src/cmdline.o
 LIBBPFSRC = libbpf/src
 
 all: ipipmapper mapper out
+libbpf:
+	$(MAKE) -C $(LIBBPFDIR)
 ipipmapper: $(COMMONOBJS)
-	$(CC) $(COMMONOBJS) src/$(IPIPMAPPERSRC) -o ipipmapper
+	$(CC) -I$(LIBBPFSRC) $(COMMONOBJS) -lelf -lz src/$(IPIPMAPPERSRC) $(LIBBPFOBJS) -o ipipmapper
 mapper:
 	$(CC) -I$(LIBBPFSRC) -D__BPF__ -Wall -Wextra -O2 -emit-llvm -c src/$(MAPPERSRC) -o src/tc_mapper.bc
 	llc -march=bpf -filetype=obj src/tc_mapper.bc -o $(MAPPEROBJ)

@@ -18,7 +18,6 @@
 #elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
 #define htons(x) (x)
 #endif
-#define offsetof(TYPE, MEMBER) ((uint16_t)&((TYPE *)0)->MEMBER)
 
 // TC has its own map definition.
 struct bpf_elf_map 
@@ -42,6 +41,14 @@ struct bpf_elf_map SEC("maps") mapping =
     .max_elem = 10000,
     .pinning = 2
 };
+
+#undef bpf_printk
+#define bpf_printk(fmt, ...)                    \
+({                                              \
+    char ____fmt[] = fmt;                       \
+    bpf_trace_printk(____fmt, sizeof(____fmt),  \
+             ##__VA_ARGS__);                    \
+})
 
 SEC("out")
 int out_prog(struct __sk_buff *skb)
@@ -103,3 +110,5 @@ int out_prog(struct __sk_buff *skb)
 
     return TC_ACT_OK;
 }
+
+char _license[] SEC("license") = "GPL";

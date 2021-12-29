@@ -5,6 +5,8 @@
 #include <inttypes.h>
 #include <string.h>
 
+#include <libbpf.h>
+
 #include "cmdline.h"
 
 #define CMD_MAX 2048
