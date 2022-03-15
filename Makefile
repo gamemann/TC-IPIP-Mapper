@@ -18,7 +18,7 @@ COMMONOBJS = src/cmdline.o
 
 LIBBPFSRC = libbpf/src
 
-all: ipipmapper mapper out
+all: libbpf ipipmapper mapper out
 libbpf:
 	$(MAKE) -C $(LIBBPFDIR)
 ipipmapper: $(COMMONOBJS)
