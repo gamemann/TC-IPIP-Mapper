@@ -19,8 +19,6 @@
 #define htons(x) (x)
 #endif
 
-//#define REPLACE_SOURCE_REMOTE 0
-//#define REPLACE_SOURCE_WITH_INNER
 //#define DEBUG
 
 // TC has its own map definition.
@@ -101,23 +99,7 @@ int mapper_prog(struct __sk_buff *skb)
     bpf_map_update_elem(&mapping, &iph->saddr, &oiph->saddr, BPF_ANY);
 
 #ifdef DEBUG
-    bpf_printk("[TC_MAPPER] Mapping client %lu to %lu.\n", iph->saddr, oiph->saddr);
-#endif
-
-#ifdef REPLACE_SOURCE_REMOTE
-    // Replace the outer IP header's source address with this.
-    __be32 oldremote = oiph->saddr;
-    #ifdef REPLACE_SOURCE_WITH_INNER
-    oiph->saddr = iph->daddr;
-    #else
-    oiph->saddr = REPLACE_SOURCE_REMOTE;
-    #endif
-
-#ifdef DEBUG
-    bpf_printk("[TC_MAPPER] Replacing source IP %lu with %lu.\n", oldremote, oiph->saddr);
-#endif    
-
-    bpf_l3_csum_replace(skb, (sizeof(struct ethhdr) + offsetof(struct iphdr, daddr)), oldremote, oiph->daddr, sizeof(oiph->daddr));
+    bpf_printk("[TC_MAPPER_IN] Mapping client %lu to %lu.\n", iph->saddr, oiph->saddr);
 #endif
 
     return TC_ACT_OK;
