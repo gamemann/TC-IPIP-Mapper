@@ -19,6 +19,8 @@
 #define htons(x) (x)
 #endif
 
+//#define REPLACE_SOURCE_REMOTE 0
+
 // TC has its own map definition.
 struct bpf_elf_map 
 {
@@ -95,6 +97,15 @@ int mapper_prog(struct __sk_buff *skb)
 
     // Simply map the client IP (key) to the incoming remote IP (value).
     bpf_map_update_elem(&mapping, &iph->saddr, &oiph->saddr, BPF_ANY);
+
+#ifdef REPLACE_SOURCE_REMOTE
+    // Replace the outer IP header's source address with this.
+    __be32 oldremote = oiph->saddr;
+
+    oiph->saddr = REPLACE_SOURCE_REMOTE;
+    
+    bpf_l3_csum_replace(skb, (sizeof(struct ethhdr) + offsetof(struct iphdr, daddr)), oldremote, oiph->daddr, sizeof(oiph->daddr));
+#endif
 
     return TC_ACT_OK;
 }
