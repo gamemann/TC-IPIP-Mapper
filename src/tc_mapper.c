@@ -115,7 +115,7 @@ int mapper_prog(struct __sk_buff *skb)
     #endif
 
 #ifdef DEBUG
-    bpf_printk("[TC_MAPPER] Replacing source IP %lu with %lu.\n", oldremote, oiph->saddr);
+    bpf_printk("[TC_MAPPER_IN] Replacing source IP %lu with %lu.\n", oldremote, oiph->saddr);
 #endif    
 
     bpf_l3_csum_replace(skb, (sizeof(struct ethhdr) + offsetof(struct iphdr, daddr)), oldremote, oiph->daddr, sizeof(oiph->daddr));
