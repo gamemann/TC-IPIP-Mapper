@@ -31,7 +31,7 @@ int tc_attach(const char *dev, const char *hook, const char *bpf_obj, const char
     memset(&cmd, 0, CMD_MAX);
 
     // Format command.
-    snprintf(cmd, CMD_MAX, "tc filter add dev %s %s prio 1 handle 1 bpf da obj %s sec %s", dev, hook, bpf_obj, sec_name);
+    snprintf(cmd, CMD_MAX, "tc filter add dev %s %s prio 1 handle 1 bpf direct-action obj %s sec %s", dev, hook, bpf_obj, sec_name);
 
     // Call system command.
     ret = system(cmd);

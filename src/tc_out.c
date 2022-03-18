@@ -141,7 +141,7 @@ int out_prog(struct __sk_buff *skb)
         bpf_printk("[TC_MAPPER_OUT] Replacing remote from %lu to %lu.\n", oldremote, oiph->daddr);
 #endif
 
-        bpf_l3_csum_replace(skb, (sizeof(struct ethhdr) + offsetof(struct iphdr, daddr)), oldremote, oiph->daddr, sizeof(oiph->daddr));
+        bpf_l3_csum_replace(skb, sizeof(struct ethhdr) + offsetof(struct iphdr, check), oldremote, oiph->daddr, sizeof(oiph->daddr));
     }
 
     return TC_ACT_OK;
