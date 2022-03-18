@@ -102,12 +102,44 @@ int out_prog(struct __sk_buff *skb)
         // Save the original remote IP for checksum recalculation.
         uint32_t oldremote = oiph->daddr;
 
+        // Now that we know the lookup was successful, we want to change the outer IP header's destination address to the remote IP and recalculate the outer IP header's checksum.
+        oiph->daddr = *remoteip;
+        uint32_t dest_ip = *remoteip;
+
+        if (iph <= (struct iphdr *)data_end)
+        {
+                // Now that we know the lookup was successful, we want to change the outer IP header's destination address to the remote IP and recalculate the outer IP header's checksum.
+                bpf_skb_store_bytes(skb, sizeof(struct ethhdr) + offsetof(struct iphdr, daddr), &dest_ip, sizeof(__u32), 0);
+        }
+
+        data = (void *)(long)skb->data;
+        data_end = (void *)(long)skb->data_end;
+
+        eth = data;
+
+        if (eth + 1 > (struct ethhdr *)data_end)
+        {
+
+                return TC_ACT_SHOT;
+        }
+
+        oiph = data + sizeof(struct ethhdr);
+
+        if (oiph + 1 > (struct iphdr *)data_end)
+        {
+                return TC_ACT_SHOT;
+        }
+
+        iph = data + sizeof(struct ethhdr) + (oiph->ihl * 4);
+
+        if (iph + 1 > (struct iphdr *)data_end)
+        {
+                return TC_ACT_SHOT;
+        }
+
 #ifdef DEBUG
         bpf_printk("[TC_MAPPER_OUT] Replacing remote from %lu to %lu.\n", oldremote, oiph->daddr);
 #endif
-
-        // Now that we know the lookup was successful, we want to change the outer IP header's destination address to the remote IP and recalculate the outer IP header's checksum.
-        oiph->daddr = *remoteip;
 
         bpf_l3_csum_replace(skb, (sizeof(struct ethhdr) + offsetof(struct iphdr, daddr)), oldremote, oiph->daddr, sizeof(oiph->daddr));
     }
