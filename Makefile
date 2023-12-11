@@ -1,44 +1,53 @@
 CC = clang
 
-MAPPEROBJ = tc_mapper.o
-MAPPERSRC = tc_mapper.c
+BUILD_DIR = build
+SRC_DIR = src
 
-LIBBPFDIR = libbpf/src
-LIBBPFOBJS = $(LIBBPFSRC)/staticobjs/bpf.o $(LIBBPFSRC)/staticobjs/btf.o $(LIBBPFSRC)/staticobjs/libbpf.o
-LIBBPFOBJS += $(LIBBPFSRC)/staticobjs/libbpf_errno.o $(LIBBPFSRC)/staticobjs/netlink.o $(LIBBPFSRC)/staticobjs/nlattr.o
-LIBBPFOBJS += $(LIBBPFSRC)/staticobjs/str_error.o $(LIBBPFSRC)/staticobjs/libbpf_probes.o $(LIBBPFSRC)/staticobjs/xsk.o
-LIBBPFOBJS += $(LIBBPFSRC)/staticobjs/btf_dump.o $(LIBBPFSRC)/staticobjs/hashmap.o $(LIBBPFSRC)/staticobjs/ringbuf.o
-LIBBPFOBJS += $(LIBBPFSRC)/staticobjs/strset.o $(LIBBPFSRC)/staticobjs/gen_loader.o $(LIBBPFSRC)/staticobjs/relo_core.o
+ETC_DIR = /etc/IPIPMapper
+INSTALL_DIR = /usr/bin
 
-OUTOBJ = tc_out.o
-OUTSRC = tc_out.c
+LIBBPF_DIR = libbpf
+LIBBPF_SRC = $(LIBBPF_DIR)/src
 
-IPIPMAPPERSRC = ipipmapper.c
-COMMONOBJS = src/cmdline.o
+LIBBPF_OBJS = $(LIBBPF_SRC)/staticobjs/bpf.o $(LIBBPF_SRC)/staticobjs/btf.o $(LIBBPF_SRC)/staticobjs/libbpf.o
+LIBBPF_OBJS += $(LIBBPF_SRC)/staticobjs/libbpf_errno.o $(LIBBPF_SRC)/staticobjs/netlink.o $(LIBBPF_SRC)/staticobjs/nlattr.o
+LIBBPF_OBJS += $(LIBBPF_SRC)/staticobjs/str_error.o $(LIBBPF_SRC)/staticobjs/libbpf_probes.o $(LIBBPF_SRC)/staticobjs/xsk.o
+LIBBPF_OBJS += $(LIBBPF_SRC)/staticobjs/btf_dump.o $(LIBBPF_SRC)/staticobjs/hashmap.o $(LIBBPF_SRC)/staticobjs/ringbuf.o
+LIBBPF_OBJS += $(LIBBPF_SRC)/staticobjs/strset.o $(LIBBPF_SRC)/staticobjs/gen_loader.o $(LIBBPF_SRC)/staticobjs/relo_core.o
 
-LIBBPFSRC = libbpf/src
+MAPPER_OBJ = $(BUILD_DIR)/tc_mapper.o
+MAPPER_SRC = $(SRC_DIR)/tc_mapper.c
 
-all: libbpf ipipmapper mapper out
-libbpf:
-	$(MAKE) -C $(LIBBPFDIR)
-ipipmapper: $(COMMONOBJS)
-	$(CC) -I$(LIBBPFSRC) $(COMMONOBJS) -lelf -lz src/$(IPIPMAPPERSRC) $(LIBBPFOBJS) -o ipipmapper
+OUT_OBJ = $(BUILD_DIR)/tc_out.o
+OUT_SRC = $(SRC_DIR)/tc_out.c
+
+IPIPMAPPER_OUT = ipipmapper
+IPIPMAPPER_SRC = $(SRC_DIR)/ipipmapper.c
+
+CMDLINE_OBJ = $(BUILD_DIR)/cmd_line.o
+CMDLINE_SRC = $(SRC_DIR)/cmdline.c
+
+all: build_dir libbpf_objs cmdline ipip_mapper mapper out
+build_dir:
+	mkdir -p build
+libbpf_objs:
+	$(MAKE) -C $(LIBBPF_SRC)
+cmdline:
+	$(CC) -O2 -shared -fPIC $(CMDLINE_SRC) -o $(CMDLINE_OBJ)
+ipip_mapper: $(CMDLINE_OBJ)
+	$(CC) -I$(LIBBPF_SRC) $(CMDLINE_OBJ) -lelf -lz $(IPIPMAPPER_SRC) $(LIBBPF_OBJS) -o $(IPIPMAPPER_OUT)
 mapper:
-	$(CC) -I$(LIBBPFSRC) -D__BPF__ -Wall -Wextra -O2 -emit-llvm -c src/$(MAPPERSRC) -o src/tc_mapper.bc
-	llc -march=bpf -filetype=obj src/tc_mapper.bc -o $(MAPPEROBJ)
+	$(CC) -I$(LIBBPF_SRC) -O2 -g -target bpf -c $(MAPPER_SRC) -o $(MAPPER_OBJ)
 out:
-	$(CC) -I$(LIBBPFSRC) -D__BPF__ -Wall -Wextra -O2 -emit-llvm -c src/$(OUTSRC) -o src/tc_out.bc
-	llc -march=bpf -filetype=obj src/tc_out.bc -o $(OUTOBJ)
+	$(CC) -I$(LIBBPF_SRC) -O2 -g -target bpf -c $(OUT_SRC) -o $(OUT_OBJ)
 clean:
-	rm -f *.o
-	rm -f src/*.bc
-	rm -f src/*.o
-	rm -f ipipmapper
+	rm -f $(BUILD_DIR)/*
+	rm -f $(IPIPMAPPER_OUT)
 install:
-	mkdir -p /etc/IPIPMapper
-	cp -f ipipmapper /usr/bin/
-	cp -f tc_mapper.o /etc/IPIPMapper/
-	cp -f tc_out.o /etc/IPIPMapper/
+	mkdir -p $(ETC_DIR)
+	cp -f ipipmapper $(INSTALL_DIR)
+	cp -f $(MAPPER_OBJ) $(ETC_DIR)
+	cp -f $(OUT_OBJ) $(ETC_DIR)
 	cp -n systemd/IPIPMapper.service /etc/systemd/system/IPIPMapper.service
-.PHONY: ipipmapper mapper out
+.PHONY: ipip_mapper mapper out
 .DEFAULT: all
