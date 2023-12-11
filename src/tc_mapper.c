@@ -23,28 +23,15 @@
 //#define REPLACE_SOURCE_WITH_INNER
 //#define DEBUG
 
-// TC has its own map definition.
-struct bpf_elf_map 
-{
-    uint32_t type;
-    uint32_t size_key;
-    uint32_t size_value;
-    uint32_t max_elem;
-    uint32_t flags;
-    uint32_t id;
-    uint32_t pinning;
-    uint32_t inner_id;
-    uint32_t inner_idx;
-};    
 
-struct bpf_elf_map SEC("maps") mapping =
+struct
 {
-    .type = BPF_MAP_TYPE_LRU_HASH,
-    .size_key = sizeof(uint32_t),
-    .size_value = sizeof(uint32_t),
-    .max_elem = 10000,
-    .pinning = 2
-};
+    __uint(type, BPF_MAP_TYPE_LRU_HASH);
+    __uint(max_entries, 10000);
+    __uint(pinning, 1);
+    __type(key, uint32_t);
+    __type(value, uint32_t);
+} mapping SEC(".maps");
 
 #undef bpf_printk
 #define bpf_printk(fmt, ...)                    \
