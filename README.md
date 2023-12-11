@@ -15,6 +15,15 @@ The only command line option is `-i --dev` which determines which interface to a
 ./ipipmapper --dev ens18
 ```
 
+## Requirements
+The `make`, `clang`, `llvm`, `libelf-dev`, and `gcc-multilib` packages are required.
+
+On Debian/Ubuntu-based systems, these may be installed using the following command.
+
+```bash
+sudo apt install -y make clang llvm libelf-dev gcc-multilib
+```
+
 ## Installing
 You may use `git` and `make` to install this project onto your server. I'd suggest the following commands for downloading and installing.
 
