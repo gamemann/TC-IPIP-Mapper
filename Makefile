@@ -33,9 +33,9 @@ build_dir:
 libbpf_objs:
 	$(MAKE) -C $(LIBBPF_SRC)
 cmdline:
-	$(CC) -O2 -shared -fPIC $(CMDLINE_SRC) -o $(CMDLINE_OBJ)
+	$(CC) -O2 -g -c $(CMDLINE_SRC) -o $(CMDLINE_OBJ)
 ipip_mapper: $(CMDLINE_OBJ)
-	$(CC) -I$(LIBBPF_SRC) $(CMDLINE_OBJ) -lelf -lz $(IPIPMAPPER_SRC) $(LIBBPF_OBJS) -o $(IPIPMAPPER_OUT)
+	$(CC) -I$(LIBBPF_SRC) -lelf -lz $(IPIPMAPPER_SRC) $(CMDLINE_OBJ) $(LIBBPF_OBJS) -o $(IPIPMAPPER_OUT)
 mapper:
 	$(CC) -I$(LIBBPF_SRC) -O2 -g -target bpf -c $(MAPPER_SRC) -o $(MAPPER_OBJ)
 out:
